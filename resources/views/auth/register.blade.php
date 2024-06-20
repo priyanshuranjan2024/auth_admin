@@ -34,8 +34,8 @@
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
             </div>
             <div class="mb-4">
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" name="password" id="password"
+                <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" name="location" id="location"
                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
             </div>
             <div class="mb-4">
