@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
+use DB;
 class AuthController extends Controller
 {
     public function login()
@@ -20,9 +20,25 @@ class AuthController extends Controller
 
     public function dashboard(){
         //firstly get all the users data from the database
-        $users = User::all();
+        $users = User::whereNull('deleted_at')->get();
 
         return view("auth.dashboard",compact("users"));//pass the users data to the view
+    }
+
+    public function search_data(Request $request)
+    {
+        $search = $request->input("search");
+        $users = DB::table('users')->where('name', 'like', "%".$search."%")->
+        orWhere('email', 'like', "%".$search."%")->get();//percentage is used to make case insensitive search
+        return view('auth.dashboard', compact('users'));
+    }
+
+    //deleting the user
+    public function delete_user($id)
+    {
+        $data=User::find($id);
+        $data->delete();
+        return redirect()->route('dashboard')->with('success','User deleted successfully');
     }
 
 
@@ -32,7 +48,7 @@ class AuthController extends Controller
         $request->validate([
             "name" => "required",
             "email" => "required|email|unique:users,email",
-            "password" => "required|min:6"
+            "password" => "required",
         ]);
 
         $user = new User();
@@ -40,7 +56,7 @@ class AuthController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->location = $request->location;
-        $user->password = Hash::make($request->password); //hash the password
+        $user->password = $request->password; //hash the password
 
         //save the user
         if($user->save()){

@@ -14,7 +14,7 @@ class SeedUsers extends Command
 
     public function handle()
     {
-        for ($i = 1; $i <= 22; $i++) {
+        for ($i = 1; $i <= 100; $i++) {
             User::factory()->create([
                 'name' => 'User ' . $i,
                 'email' => 'user' . $i . '@example.com',
