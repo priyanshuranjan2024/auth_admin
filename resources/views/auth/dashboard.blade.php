@@ -31,7 +31,7 @@
         <main class="flex-1 p-8">
 
             <div class="mb-6 flex justify-center">
-            <form action="search_data" method="GET" class="flex">
+                <form action="search_data" method="GET" class="flex">
                     <input type="text" name="search" placeholder="Search users..." class="px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r-md">Search</button>
                 </form>
@@ -43,14 +43,11 @@
                 <table class="table-auto w-full bg-white border-collapse">
                     <thead>
                         <tr class="bg-gray-200">
-                            <th class="px-4 py-2 border cursor-pointer">Name <span
-                                    id="nameSortIcon" class="ml-1 sort-icon"></span></th>
-                            <th class="px-4 py-2 border cursor-pointer">Email <span
-                                    id="emailSortIcon" class="ml-1 sort-icon"></span></th>
+                            <th class="px-4 py-2 border cursor-pointer">Name <span id="nameSortIcon" class="ml-1 sort-icon"></span></th>
+                            <th class="px-4 py-2 border cursor-pointer">Email <span id="emailSortIcon" class="ml-1 sort-icon"></span></th>
                             <th class="px-4 py-2 border">Location</th>
+                            <th class="px-4 py-2 border">Status</th>
                             <th class="px-4 py-2 border">Actions</th>
-                                
-                            
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
@@ -65,6 +62,10 @@
                             <td class="px-4 py-2 border">{{ $user->email }}</td>
                             <td class="px-4 py-2 border">{{ $user->location }}</td>
                             <td class="px-4 py-2 border">
+                                <span>{{ $user->status }}</span>
+                                <a href="{{ route('toggleStatus', $user->id) }}" onclick="return confirmStatusChange(event, '{{ $user->status }}')"><button class="px-2 py-1 bg-green-500 text-white rounded-md ml-2">Toggle</button></a>
+                            </td>
+                            <td class="px-4 py-2 border">
                                 <a href="edit_user/{{$user->id}}"><button class="px-2 py-1 bg-yellow-500 text-white rounded-md mr-2">Update</button></a>
                                 <a href="delete_user/{{$user->id}}"><button class="px-2 py-1 bg-red-500 text-white rounded-md" onclick="">Delete</button></a>
                             </td>
@@ -73,7 +74,7 @@
                     </tbody>
                 </table>
                 <!-- Pagination controls -->
-                <div class="mt-4 ">
+                <div class="mt-4">
                     @for ($i = 1; $i <= $pages; $i++)
                         <button class="px-3 py-1 bg-gray-300 mr-2 rounded-full" onclick="changePage({{ $i }})">{{ $i }}</button>
                     @endfor
@@ -92,6 +93,7 @@
 
 <script>
 let currentPage = 1;
+
 // Function to change current page
 function changePage(pageNumber) {
     currentPage = pageNumber;
@@ -113,11 +115,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get the current page from the URL query parameter or use 1 as default
     let urlParams = new URLSearchParams(window.location.search);
     currentPage = parseInt(urlParams.get('page')) || 1;
-    
+
     // Trigger the changePage function with the current page
     changePage(currentPage);
 });
+
+// Function to confirm status change
+function confirmStatusChange(event, currentStatus) {
+    event.preventDefault(); // Prevent the default action (navigation)
+    let newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    if (confirm(`Are you sure you want to change the status to ${newStatus}?`)) {
+        window.location.href = event.target.closest('a').href; // Navigate to the link if confirmed
+    }
+}
 </script>
-
-
 @endsection

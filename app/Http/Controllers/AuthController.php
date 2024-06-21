@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use DB;
+
 class AuthController extends Controller
 {
     public function login()
@@ -14,55 +15,69 @@ class AuthController extends Controller
         return view("auth.login");
     }
 
-    public function register(){
+    public function register()
+    {
         return view("auth.register");
     }
 
-    public function dashboard(){
+    public function dashboard()
+    {
         //firstly get all the users data from the database
         $users = User::whereNull('deleted_at')->get();
 
-        return view("auth.dashboard",compact("users"));//pass the users data to the view
+        return view("auth.dashboard", compact("users"));//pass the users data to the view
     }
 
     public function search_data(Request $request)
     {
         $search = $request->input("search");
-        $users = DB::table('users')->where('name', 'like', "%".$search."%")->
-        orWhere('email', 'like', "%".$search."%")->get();//percentage is used to make case insensitive search
+        $users = DB::table('users')->where('name', 'like', "%" . $search . "%")->
+            orWhere('email', 'like', "%" . $search . "%")->get();//percentage is used to make case insensitive search
         return view('auth.dashboard', compact('users'));
     }
 
     //deleting the user
     public function delete_user($id)
     {
-        $data=User::find($id);
+        $data = User::find($id);
         $data->delete();
-        return redirect()->route('dashboard')->with('success','User deleted successfully');
+        return redirect()->route('dashboard')->with('success', 'User deleted successfully');
     }
 
     //editing the user
     public function edit_user($id)
     {
-        $data=User::find($id);
-        return view('auth.edit',compact('data'));
+        $data = User::find($id);
+        return view('auth.edit', compact('data'));
     }
 
     //updating the user
-    public function update_data(Request $request,$id)
+    public function update_data(Request $request, $id)
     {
-        $data=User::find($id);
-        $data->name=$request->name;
-        $data->email=$request->email;
-        $data->location=$request->location;
-        $data->password=Hash::make($request->password);
+        $data = User::find($id);
+        $data->name = $request->name;
+        $data->email = $request->email;
+        $data->location = $request->location;
+        $data->password = Hash::make($request->password);
         $data->save();
-        return redirect()->route('dashboard')->with('success','User updated successfully');
+        return redirect()->route('dashboard')->with('success', 'User updated successfully');
+    }
+
+    //toggle status
+    public function toggleStatus($id)
+    {
+        $user = User::findOrFail($id);
+        $user->status = $user->status === 'active' ? 'inactive' : 'active';
+        $user->save();
+
+        return redirect()->back();
     }
 
 
 
-    public function registerPost(Request $request){
+
+    public function registerPost(Request $request)
+    {
         //validate first
         $request->validate([
             "name" => "required",
@@ -78,11 +93,11 @@ class AuthController extends Controller
         $user->password = $request->password; //hash the password
 
         //save the user
-        if($user->save()){
-            return redirect()->route("login")->with("success","User created successfully");
+        if ($user->save()) {
+            return redirect()->route("login")->with("success", "User created successfully");
         }
         //if the user is not saved
-        return redirect()->route("register")->with("error","User not created");
+        return redirect()->route("register")->with("error", "User not created");
     }
 
     public function loginPost(Request $request)
@@ -97,17 +112,18 @@ class AuthController extends Controller
         $credentials = $request->only("email", "password");
 
         //now try to authenticate the user
-        if(Auth::attempt($credentials)){
+        if (Auth::attempt($credentials)) {
             //if the user is authenticated then redirect to the dashboard
             return redirect()->route("dashboard");
         }
 
         //otherwise redirect back to the login page with an error message
-        return redirect()->route("login")->with("error","Invalid credentials");
+        return redirect()->route("login")->with("error", "Invalid credentials");
     }
 
     //logout function
-    public function logout(){
+    public function logout()
+    {
         Auth::logout();
         return redirect()->route("login");
     }
