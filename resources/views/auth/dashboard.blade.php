@@ -29,7 +29,7 @@
 
         <!-- Main Content -->
         <main class="flex-1 p-8">
-            <h2 class="text-2xl font-bold mb-6 text-center">AdminLTE - Dashboard</h2>
+
             <div class="mb-6 flex justify-center">
             <form action="search_data" method="GET" class="flex">
                     <input type="text" name="search" placeholder="Search users..." class="px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
@@ -65,7 +65,7 @@
                             <td class="px-4 py-2 border">{{ $user->email }}</td>
                             <td class="px-4 py-2 border">{{ $user->location }}</td>
                             <td class="px-4 py-2 border">
-                                <a href=""><button class="px-2 py-1 bg-yellow-500 text-white rounded-md mr-2">Update</button></a>
+                                <a href="edit_user/{{$user->id}}"><button class="px-2 py-1 bg-yellow-500 text-white rounded-md mr-2">Update</button></a>
                                 <a href="delete_user/{{$user->id}}"><button class="px-2 py-1 bg-red-500 text-white rounded-md" onclick="">Delete</button></a>
                             </td>
                         </tr>

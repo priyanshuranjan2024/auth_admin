@@ -41,6 +41,25 @@ class AuthController extends Controller
         return redirect()->route('dashboard')->with('success','User deleted successfully');
     }
 
+    //editing the user
+    public function edit_user($id)
+    {
+        $data=User::find($id);
+        return view('auth.edit',compact('data'));
+    }
+
+    //updating the user
+    public function update_data(Request $request,$id)
+    {
+        $data=User::find($id);
+        $data->name=$request->name;
+        $data->email=$request->email;
+        $data->location=$request->location;
+        $data->password=Hash::make($request->password);
+        $data->save();
+        return redirect()->route('dashboard')->with('success','User updated successfully');
+    }
+
 
 
     public function registerPost(Request $request){
