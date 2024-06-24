@@ -29,56 +29,98 @@
 
         <!-- Main Content -->
         <main class="flex-1 p-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white shadow-md rounded-lg p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">Total Users</h3>
+                    <p class="text-3xl font-bold text-blue-600">{{ $totalUsersCount }}</p>
+                </div>
+                <div class="bg-white shadow-md rounded-lg p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">Active Users</h3>
+                    <p class="text-3xl font-bold text-green-600">{{ $activeUsersCount }}</p>
+                </div>
+                <div class="bg-white shadow-md rounded-lg p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-2 text-gray-700">Inactive Users</h3>
+                    <p class="text-3xl font-bold text-red-600">{{ $inactiveUsersCount }}</p>
+                </div>
+            </div>
 
             <div class="mb-6 flex justify-center">
-                <form action="search_data" method="GET" class="flex">
-                    <input type="text" name="search" placeholder="Search users..." class="px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r-md">Search</button>
-                </form>
-            </div>
-            <div class="mb-4 text-center">
-                <h3 class="text-xl font-semibold">Total Users: {{ $users->count() }}</h3>
-            </div>
+    <form action="{{ route('search_data') }}" method="GET" class="flex w-full">
+        <!-- Search by Name -->
+        <input type="text" name="search_name" value="{{ request('search_name') }}"
+            placeholder="Search by Name"
+            class="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
+
+        <!-- Search by Email -->
+        <input type="text" name="search_email" value="{{ request('search_email') }}"
+            placeholder="Search by Email"
+            class="w-full px-4 py-2 border border-gray-300 focus:outline-none">
+
+        <!-- Search by Location -->
+        <input type="text" name="search_location" value="{{ request('search_location') }}"
+            placeholder="Search by Location"
+            class="w-full px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none">
+
+        <!-- Status Filter -->
+        <select name="status" class="px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none">
+            <option value="">Select Status</option>
+            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+        </select>
+
+        <!-- Search Button -->
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r-md">Search</button>
+    </form>
+</div>
+
+
             <div class="overflow-x-auto">
                 <table class="table-auto w-full bg-white border-collapse">
                     <thead>
                         <tr class="bg-gray-200">
-                            <th class="px-4 py-2 border cursor-pointer">Name <span id="nameSortIcon" class="ml-1 sort-icon"></span></th>
-                            <th class="px-4 py-2 border cursor-pointer">Email <span id="emailSortIcon" class="ml-1 sort-icon"></span></th>
-                            <th class="px-4 py-2 border">Location</th>
-                            <th class="px-4 py-2 border">Status</th>
+                            <th class="px-4 py-2 border cursor-pointer"><a
+                                    href="{{ route('dashboard', ['sort' => 'name', 'order' => ($sort == 'name' && $order == 'asc') ? 'desc' : 'asc']) }}">Name
+                                    <span id="nameSortIcon" class="ml-1 sort-icon"></span></a></th>
+                            <th class="px-4 py-2 border cursor-pointer"><a
+                                    href="{{ route('dashboard', ['sort' => 'email', 'order' => ($sort == 'email' && $order == 'asc') ? 'desc' : 'asc']) }}">Email
+                                    <span id="emailSortIcon" class="ml-1 sort-icon"></span></a></th>
+                            <th class="px-4 py-2 border cursor-pointer"><a
+                                    href="{{ route('dashboard', ['sort' => 'location', 'order' => ($sort == 'location' && $order == 'asc') ? 'desc' : 'asc']) }}">Location
+                                    <span id="locationSortIcon" class="ml-1 sort-icon"></span></a></th>
+                            <th class="px-4 py-2 border"><a
+                                    href="{{ route('dashboard', ['sort' => 'status', 'order' => ($sort == 'status' && $order == 'asc') ? 'desc' : 'asc']) }}">Status
+                                    <span id="locationSortIcon" class="ml-1 sort-icon"></span></a></th>
                             <th class="px-4 py-2 border">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
-                        <!-- Paginate the users here -->
-                        @php
-                        $perPage = 10;
-                        $pages = ceil($users->count() / $perPage);
-                        @endphp
                         @foreach ($users as $user)
-                        <tr class="text-center">
+                        <tr>
                             <td class="px-4 py-2 border">{{ $user->name }}</td>
                             <td class="px-4 py-2 border">{{ $user->email }}</td>
                             <td class="px-4 py-2 border">{{ $user->location }}</td>
+                            <td class="px-4 py-2 border">{{ $user->status }}</td>
                             <td class="px-4 py-2 border">
-                                <span>{{ $user->status }}</span>
-                                <a href="{{ route('toggleStatus', $user->id) }}" onclick="return confirmStatusChange(event, '{{ $user->status }}')"><button class="px-2 py-1 bg-green-500 text-white rounded-md ml-2">Toggle</button></a>
-                            </td>
-                            <td class="px-4 py-2 border">
-                                <a href="edit_user/{{$user->id}}"><button class="px-2 py-1 bg-yellow-500 text-white rounded-md mr-2">Update</button></a>
-                                <a href="delete_user/{{$user->id}}"><button class="px-2 py-1 bg-red-500 text-white rounded-md" onclick="">Delete</button></a>
+                                <div class="action-buttons">
+                                <a href="{{ route('user.show', $user->id) }}">
+                        <button class="px-2 py-1 bg-blue-500 text-white rounded-md">View</button>
+                    </a>
+                                    <a href="edit_user/{{$user->id}}">
+                                        <button class="px-2 py-1 bg-yellow-500 text-white rounded-md">Update</button>
+                                    </a>
+                                    <a href="delete_user/{{$user->id}}">
+                                        <button class="px-2 py-1 bg-red-500 text-white rounded-md">Delete</button>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
+
                 </table>
-                <!-- Pagination controls -->
-                <div class="mt-4">
-                    @for ($i = 1; $i <= $pages; $i++)
-                        <button class="px-3 py-1 bg-gray-300 mr-2 rounded-full" onclick="changePage({{ $i }})">{{ $i }}</button>
-                    @endfor
-                </div>
+                {{$users->links()}}
+
+
             </div>
         </main>
     </div>
@@ -92,34 +134,6 @@
 </div>
 
 <script>
-let currentPage = 1;
-
-// Function to change current page
-function changePage(pageNumber) {
-    currentPage = pageNumber;
-    let startIndex = (currentPage - 1) * {{ $perPage }};
-    let endIndex = startIndex + {{ $perPage }} - 1;
-    let tableRows = document.querySelectorAll('#userTableBody tr');
-
-    tableRows.forEach((row, index) => {
-        if (index >= startIndex && index <= endIndex) {
-            row.style.display = 'table-row';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-}
-
-// Function to initialize pagination on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Get the current page from the URL query parameter or use 1 as default
-    let urlParams = new URLSearchParams(window.location.search);
-    currentPage = parseInt(urlParams.get('page')) || 1;
-
-    // Trigger the changePage function with the current page
-    changePage(currentPage);
-});
-
 // Function to confirm status change
 function confirmStatusChange(event, currentStatus) {
     event.preventDefault(); // Prevent the default action (navigation)

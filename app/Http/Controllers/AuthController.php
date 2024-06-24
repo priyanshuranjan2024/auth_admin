@@ -20,50 +20,138 @@ class AuthController extends Controller
         return view("auth.register");
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        //firstly get all the users data from the database
-        $users = User::whereNull('deleted_at')->get();
+        // Retrieve sort parameters
+        $sort = $request->input('sort', 'name');
+        $order = $request->input('order', 'asc');
 
-        return view("auth.dashboard", compact("users"));//pass the users data to the view
+        // Store sorting parameters in session
+        session(['sort' => $sort, 'order' => $order]);
+
+        // Retrieve search parameters
+        $searchName = $request->input('search_name', '');
+        $searchEmail = $request->input('search_email', '');
+        $searchLocation = $request->input('search_location', '');
+        $status = $request->input('status', '');
+
+        // Query to get the count of all users
+        $totalUsersCount = User::whereNull('deleted_at')->count();
+
+        // Query to get the count of active users
+        $activeUsersCount = User::whereNull('deleted_at')->where('status', 'active')->count();
+
+        // Query to get the count of inactive users
+        $inactiveUsersCount = User::whereNull('deleted_at')->where('status', 'inactive')->count();
+
+        // Query to paginate users with sorting and searching
+        $usersQuery = User::whereNull('deleted_at')
+            ->when($searchName, function ($query) use ($searchName) {
+                return $query->where('name', 'like', '%' . $searchName . '%');
+            })
+            ->when($searchEmail, function ($query) use ($searchEmail) {
+                return $query->where('email', 'like', '%' . $searchEmail . '%');
+            })
+            ->when($searchLocation, function ($query) use ($searchLocation) {
+                return $query->where('location', 'like', '%' . $searchLocation . '%');
+            })
+            ->when($status, function ($query) use ($status) {
+                return $query->where('status', $status);
+            })
+            ->orderBy($sort, $order);
+
+        // Paginate users
+        $users = $usersQuery->paginate(10)
+            ->appends(['sort' => $sort, 'order' => $order, 'search_name' => $searchName, 'search_email' => $searchEmail, 'search_location' => $searchLocation, 'status' => $status]);
+
+        // Return the view with the data and parameters
+        return view('auth.dashboard', compact("users", "activeUsersCount", "inactiveUsersCount", "totalUsersCount", "sort", "order", "searchName", "searchEmail", "searchLocation", "status"));
     }
 
     public function search_data(Request $request)
     {
-        $search = $request->input("search");
-        $users = DB::table('users')->where('name', 'like', "%" . $search . "%")->
-            orWhere('email', 'like', "%" . $search . "%")->get();//percentage is used to make case insensitive search
-        return view('auth.dashboard', compact('users'));
+        // Retrieve sort parameters
+        $sort = $request->input('sort', 'name');
+        $order = $request->input('order', 'asc');
+
+        // Store sorting parameters in session
+        session(['sort' => $sort, 'order' => $order]);
+
+        // Retrieve search parameters
+        $searchName = $request->input('search_name', '');
+        $searchEmail = $request->input('search_email', '');
+        $searchLocation = $request->input('search_location', '');
+        $status = $request->input('status', '');
+
+        // Query to search users
+        $usersQuery = User::whereNull('deleted_at')
+            ->when($searchName, function ($query) use ($searchName) {
+                return $query->where('name', 'like', '%' . $searchName . '%');
+            })
+            ->when($searchEmail, function ($query) use ($searchEmail) {
+                return $query->where('email', 'like', '%' . $searchEmail . '%');
+            })
+            ->when($searchLocation, function ($query) use ($searchLocation) {
+                return $query->where('location', 'like', '%' . $searchLocation . '%');
+            })
+            ->when($status, function ($query) use ($status) {
+                return $query->where('status', $status);
+            })
+            ->orderBy($sort, $order);
+
+        // Paginate users
+        $users = $usersQuery->paginate(10)
+            ->appends(['sort' => $sort, 'order' => $order, 'search_name' => $searchName, 'search_email' => $searchEmail, 'search_location' => $searchLocation, 'status' => $status]);
+
+        // Retrieve counts based on the full user list
+        $totalUsersCount = User::whereNull('deleted_at')->count();
+        $activeUsersCount = User::whereNull('deleted_at')->where('status', 'active')->count();
+        $inactiveUsersCount = User::whereNull('deleted_at')->where('status', 'inactive')->count();
+
+        // Return the view with the necessary data
+        return view('auth.dashboard', compact("users", "activeUsersCount", "inactiveUsersCount", "totalUsersCount", "searchName", "searchEmail", "searchLocation", "sort", "order", "status"));
     }
 
-    //deleting the user
     public function delete_user($id)
     {
-        $data = User::find($id);
-        $data->delete();
+        $user = User::findOrFail($id);
+        $user->delete();
+
         return redirect()->route('dashboard')->with('success', 'User deleted successfully');
     }
 
-    //editing the user
     public function edit_user($id)
     {
-        $data = User::find($id);
+        $data = User::findOrFail($id);
+
         return view('auth.edit', compact('data'));
     }
 
-    //updating the user
     public function update_data(Request $request, $id)
     {
-        $data = User::find($id);
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->location = $request->location;
-        $data->password = Hash::make($request->password);
-        $data->save();
+        $request->validate([
+            "name" => "required",
+            "email" => "required|email",
+            "location" => "required",
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->location = $request->location;
+        if (!empty($request->password)) {
+            $user->password = Hash::make($request->password);
+        }
+        $user->save();
+
         return redirect()->route('dashboard')->with('success', 'User updated successfully');
     }
 
-    //toggle status
+    public function show($id){
+        $user = User::findOrFail($id);
+        return view('auth.showUser', compact('user'));
+    }
+
     public function toggleStatus($id)
     {
         $user = User::findOrFail($id);
@@ -73,55 +161,48 @@ class AuthController extends Controller
         return redirect()->back();
     }
 
-
-
-
     public function registerPost(Request $request)
     {
-        //validate first
+        // Validate the request
         $request->validate([
             "name" => "required",
             "email" => "required|email|unique:users,email",
             "password" => "required",
+            "location" => "required",
         ]);
 
+        // Create new user instance
         $user = new User();
-        //now we will create a new user with data from the request
         $user->name = $request->name;
         $user->email = $request->email;
         $user->location = $request->location;
-        $user->password = $request->password; //hash the password
+        $user->password = Hash::make($request->password);
 
-        //save the user
+        // Save the user
         if ($user->save()) {
             return redirect()->route("login")->with("success", "User created successfully");
         }
-        //if the user is not saved
+
         return redirect()->route("register")->with("error", "User not created");
     }
 
     public function loginPost(Request $request)
     {
-        //first validate the email and password from the request body
+        // Validate the request
         $request->validate([
             "email" => "required|email",
             "password" => "required",
         ]);
 
-        //now only take email and password from the request body
+        // Attempt to log in the user
         $credentials = $request->only("email", "password");
-
-        //now try to authenticate the user
         if (Auth::attempt($credentials)) {
-            //if the user is authenticated then redirect to the dashboard
             return redirect()->route("dashboard");
         }
 
-        //otherwise redirect back to the login page with an error message
         return redirect()->route("login")->with("error", "Invalid credentials");
     }
 
-    //logout function
     public function logout()
     {
         Auth::logout();

@@ -11,6 +11,7 @@ Route::get('/', function () {
 });
 
 Route::get('/search_data',[AuthController::class,"search_data"])->name('search_data');
+Route::get('/user/{id}', [AuthController::class, 'show'])->name('user.show');
 Route::get('/delete_user/{id}',[AuthController::class,"delete_user"])->name('delete');
 Route::get('/edit_user/{id}',[AuthController::class,"edit_user"])->name('edit_user');//route for edit user
 Route::post('/update_data/{id}',[AuthController::class,"update_data"])->name('update_data');//route for update user
