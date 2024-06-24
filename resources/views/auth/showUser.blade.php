@@ -40,6 +40,14 @@
                     <div class="mb-4">
                         <p><strong>Location:</strong> {{ $user->location }}</p>
                     </div>
+                    <div class="mb-4">
+                @if ($user->image)
+                <p><strong>Location:</strong> {{ $user->image }}</p>
+                    <img src="/storage/images/{{$user->image}}" alt="User Image" class="rounded-full h-32 w-32 mx-auto">
+                @else
+                    <p>No image available</p>
+                @endif
+            </div>
                     <div class="text-center">
                         <a href="{{ route('dashboard') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Back to Users</a>
                     </div>

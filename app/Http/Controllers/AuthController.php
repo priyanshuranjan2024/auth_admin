@@ -142,6 +142,14 @@ class AuthController extends Controller
         if (!empty($request->password)) {
             $user->password = Hash::make($request->password);
         }
+        
+        if ($request->hasFile('image')) {
+            $image=$request->file('image');
+            $ext=$image->getClientOriginalExtension();
+            $image_name=time().'.'.$ext;
+            $image->move("storage/images",$image_name);
+            $user->image=$image_name;
+        }
         $user->save();
 
         return redirect()->route('dashboard')->with('success', 'User updated successfully');
