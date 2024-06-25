@@ -38,11 +38,14 @@
                         <p><strong>Email:</strong> {{ $user->email }}</p>
                     </div>
                     <div class="mb-4">
+                        <p><strong>Status</strong> {{ $user->status }}</p> 
+                    </div>
+                    <div class="mb-4">
                         <p><strong>Location:</strong> {{ $user->location }}</p>
                     </div>
                     <div class="mb-4">
                 @if ($user->image)
-                <p><strong>Location:</strong> {{ $user->image }}</p>
+
                     <img src="/storage/images/{{$user->image}}" alt="User Image" class="rounded-full h-32 w-32 mx-auto">
                 @else
                     <p>No image available</p>

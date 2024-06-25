@@ -99,7 +99,14 @@
                             <td class="px-4 py-2 border">{{ $user->name }}</td>
                             <td class="px-4 py-2 border">{{ $user->email }}</td>
                             <td class="px-4 py-2 border">{{ $user->location }}</td>
-                            <td class="px-4 py-2 border">{{ $user->status }}</td>
+                            <td class="px-4 py-2 border">
+    <form action="{{ route('toggleStatus', $user->id) }}" method="GET" style="display: inline;">
+        @csrf
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">
+            {{ $user->status }}
+        </button>
+    </form>
+</td>
                             <td class="px-4 py-2 border">
                                 <div class="action-buttons">
                                 <a href="{{ route('user.show', $user->id) }}">
